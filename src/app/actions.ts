@@ -4,6 +4,7 @@ import { generateQuestionEmbedding } from '@/ai/flows/question-embedding';
 import type { WeaviateDocument, Citation, ServerActionResponse } from '@/lib/types';
 
 async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
+  console.log('Step 4: Searching Weaviate with the embedding vector...');
   const weaviateEndpoint = process.env.WEAVIATE_ENDPOINT;
   const weaviateApiKey = process.env.WEAVIATE_API_KEY;
   const topK = process.env.TOP_K || '5';
@@ -51,6 +52,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   }
 
   const results = json.data.Get.UserName || [];
+  console.log(`Step 5: Found ${results.length} documents in Weaviate`);
 
   return results.map((doc: any) => ({
     title: doc.title,
@@ -61,6 +63,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
 }
 
 async function generateAnswer(context: string, question: string): Promise<string> {
+  console.log('Step 7: Generating answer with context...');
   const openAiApiKey = process.env.OPENAI_API_KEY;
   const openAiChatModel = process.env.OPENAI_CHAT_MODEL || 'gpt-4o';
 
@@ -93,10 +96,13 @@ async function generateAnswer(context: string, question: string): Promise<string
   }
 
   const json = await res.json();
-  return json.choices[0].message.content.trim();
+  const answer = json.choices[0].message.content.trim();
+  console.log(`Step 8: Generated answer: "${answer}"`);
+  return answer;
 }
 
 export async function askQuestion(question: string): Promise<ServerActionResponse> {
+  console.log(`Step 1: Get text from user: "${question}"`);
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
     const scoreThreshold = parseFloat(process.env.SCORE_THRESHOLD || '0.7');
@@ -105,16 +111,19 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
       throw new Error('OpenAI API key is not set.');
     }
 
+    console.log('Step 2: Embedding text...');
     const { embedding } = await generateQuestionEmbedding({
       question,
       openAiApiKey,
     });
+    console.log(`Step 3: Embedding data: {*embedding data of length ${embedding.length}*}`);
 
     const docs = await searchWeaviate(embedding);
 
     const filteredDocs = docs.filter(
       (doc) => doc._additional.distance < scoreThreshold
     );
+    console.log(`Step 6: Filtered down to ${filteredDocs.length} documents based on score threshold of ${scoreThreshold}`);
 
     if (filteredDocs.length === 0) {
       return {
@@ -134,9 +143,12 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
       title: d.title,
       source: d.source,
     }));
-
-    return { answer, citations };
+    
+    const response = { answer, citations };
+    console.log('Step 9: Returning final response:', JSON.stringify(response, null, 2));
+    return response;
   } catch (err) {
+    console.error('Error in askQuestion:', err);
     const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
     return { error: `Internal server error: ${errorMessage}` };
   }

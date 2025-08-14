@@ -22,6 +22,7 @@ const QuestionEmbeddingOutputSchema = z.object({
 export type QuestionEmbeddingOutput = z.infer<typeof QuestionEmbeddingOutputSchema>;
 
 export async function generateQuestionEmbedding(input: QuestionEmbeddingInput): Promise<QuestionEmbeddingOutput> {
+  console.log(`Step 2a: Calling Genkit flow to generate embedding for question: "${input.question}"`);
   return questionEmbeddingFlow(input);
 }
 
@@ -36,6 +37,7 @@ const questionEmbeddingFlow = ai.defineFlow(
       question,
       openAiApiKey,
     } = input;
+    console.log('Step 2b: Calling OpenAI Embeddings API...');
 
     const res = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
@@ -50,6 +52,7 @@ const questionEmbeddingFlow = ai.defineFlow(
     });
     const json = await res.json();
     const embedding = json.data[0].embedding;
+    console.log('Step 2c: Successfully generated embedding');
 
     return {
       embedding: embedding,

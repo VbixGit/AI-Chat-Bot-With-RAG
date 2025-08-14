@@ -18,6 +18,7 @@ export function ChatPanel() {
   const { formRef, onKeyDown } = useEnterSubmit();
 
   const handleAskQuestion = async (question: string) => {
+    console.log('Step 1 (Client): User submitted question:', question);
     setIsLoading(true);
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -28,6 +29,7 @@ export function ChatPanel() {
 
     const res = await askQuestion(question);
     setIsLoading(false);
+    console.log('Step 10 (Client): Received response from server:', res);
 
     if ('error' in res) {
       toast({
@@ -50,9 +52,11 @@ export function ChatPanel() {
       content: res.answer,
     };
     setMessages(prevMessages => [...prevMessages, aiMessage]);
+    console.log('Step 11 (Client): Displaying AI response');
   };
 
   const clearChat = () => {
+    console.log('Client: Clearing chat');
     setMessages([]);
   };
 
