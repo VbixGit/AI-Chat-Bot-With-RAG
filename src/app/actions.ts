@@ -56,7 +56,10 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
 
   return results.map((doc: any) => ({
     title: doc.title,
-    text: doc.content || doc.pdfText,
+    email: doc.email,
+    status: doc.status,
+    content: doc.content,
+    text: doc.pdfText,
     source: doc.instanceID,
     _additional: doc._additional,
   }));
@@ -71,7 +74,12 @@ async function generateAnswer(context: string, question: string): Promise<string
     throw new Error('OpenAI API key is not set.');
   }
 
-  const systemPrompt = `You are a retrieval-augmented assistant. Use ONLY the provided Context to answer the question.\nIf the answer is not in the Context, reply exactly: "No matching information found."`;
+  const systemPrompt = `You are VectorSage, a friendly and intelligent AI assistant. Your goal is to provide helpful and comprehensive answers to the user's questions based on the information provided in the Context.
+
+- Synthesize the information from the Context to answer the user's question thoroughly.
+- If the Context doesn't contain a direct answer, try to infer one or explain what information is available.
+- If you cannot answer the question at all with the given context, politely state that you couldn't find the specific information.
+- Answer in a conversational and helpful tone.`;
   const userPrompt = `Question: ${question}\n\nContext:\n${context}`;
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
