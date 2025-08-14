@@ -1,26 +1,38 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { IconTrash } from '@/components/ui/icons';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-type ChatHeaderProps = {
+interface ChatHeaderProps {
   clearChat: () => void;
   isLoading: boolean;
-};
+}
 
 export function ChatHeader({ clearChat, isLoading }: ChatHeaderProps) {
   return (
     <header className="flex items-center justify-between p-4 border-b">
-      <h1 className="text-xl font-bold font-headline">VectorSage</h1>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={clearChat}
-        disabled={isLoading}
-        aria-label="Clear chat history"
-      >
-        <Trash2 className="size-5" />
-      </Button>
+      <h1 className="text-xl font-semibold">VectorSage</h1>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              onClick={clearChat}
+              disabled={isLoading}
+            >
+              <IconTrash />
+              <span className="sr-only">Clear Chat</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Clear Chat</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </header>
   );
 }

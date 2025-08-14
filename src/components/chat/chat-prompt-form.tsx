@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Textarea from 'react-textarea-autosize';
 import { Button } from '@/components/ui/button';
-import { IconArrowElbow } from '@/components/ui/icons';
+import { IconArrowElbow, IconStop } from '@/components/ui/icons';
 
 interface PromptFormProps {
   formRef: React.RefObject<HTMLFormElement>;
@@ -49,14 +49,27 @@ export function PromptForm({
           className="w-full resize-none bg-transparent py-4 focus-within:outline-none sm:text-sm"
         />
         <div className="absolute right-0 top-4 sm:right-4">
-          <Button
-            type="submit"
-            size="icon"
-            disabled={isLoading || input === ''}
-          >
-            <IconArrowElbow />
-            <span className="sr-only">Send message</span>
-          </Button>
+          {isLoading ? (
+            <Button
+              type="button"
+              size="icon"
+              onClick={() => {
+                // This is a dummy function for now, as we don't have a way to stop the AI's response
+              }}
+            >
+              <IconStop />
+              <span className="sr-only">Stop</span>
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="icon"
+              disabled={isLoading || input === ''}
+            >
+              <IconArrowElbow />
+              <span className="sr-only">Send message</span>
+            </Button>
+          )}
         </div>
       </div>
     </form>
