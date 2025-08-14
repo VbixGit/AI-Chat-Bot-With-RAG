@@ -50,14 +50,12 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
   
-  // Correctly extract data from the UserName collection
   const results = json.data.Get.UserName || [];
   
-  // Map results to the expected WeaviateDocument structure
   return results.map((doc: any) => ({
     title: doc.title,
-    text: doc.content || doc.pdfText, // Use content or pdfText for the main text
-    source: doc.instanceID, // Use instanceID as the source
+    text: doc.content || doc.pdfText,
+    source: doc.instanceID,
     _additional: doc._additional,
   }));
 }
@@ -101,7 +99,7 @@ async function generateAnswer(context: string, question: string): Promise<string
 export async function askQuestion(question: string): Promise<ServerActionResponse> {
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
-    const scoreThreshold = parseFloat(process.env.SCORE_THRESHOLD || '0.35');
+    const scoreThreshold = parseFloat(process.env.SCORE_THRESHOLD || '0.7');
 
     if (!openAiApiKey) {
       throw new Error('OpenAI API key is not set.');
@@ -136,10 +134,11 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
       title: d.title,
       source: d.source,
     }));
-
-    return { answer, citations };
+    
+    const response = { answer, citations };
+    return response;
   } catch (err) {
-    console.error(err);
+    console.error('Error in askQuestion:', err);
     const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
     return { error: `Internal server error: ${errorMessage}` };
   }
