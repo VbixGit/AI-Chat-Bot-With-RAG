@@ -15,7 +15,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   const query = `
     {
       Get {
-        Document(
+        VectorSage(
           nearVector: { vector: ${JSON.stringify(vector)} }
           limit: ${topK}
         ) {
@@ -47,7 +47,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
   
-  return json.data.Get.Document || [];
+  return json.data.Get.VectorSage || [];
 }
 
 async function generateAnswer(context: string, question: string): Promise<string> {
