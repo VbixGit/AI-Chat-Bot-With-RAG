@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { type Message } from 'next/chat';
+import { type Message } from 'ai/react';
 import type { Citation } from '@/lib/types';
 
 interface ChatMessageProps {

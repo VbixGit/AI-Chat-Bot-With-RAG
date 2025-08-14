@@ -1,6 +1,6 @@
 'use client';
 
-import { useChat, type Message } from 'next/chat';
+import { useChat, type Message } from 'ai/react';
 import { useEnterSubmit } from '@/hooks/use-enter-submit';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatScrollAnchor } from '@/components/chat/chat-scroll-anchor';

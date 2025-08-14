@@ -1,6 +1,6 @@
 'use client';
 
-import { type Message } from 'next/chat';
+import { type Message } from 'ai/react';
 import { ChatMessage } from './chat-message';
 
 interface ChatListProps {
