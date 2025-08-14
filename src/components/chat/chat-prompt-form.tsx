@@ -27,7 +27,7 @@ export function PromptForm({
   return (
     <form
       ref={formRef}
-      onSubmit={async (e: any) => {
+      onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!input?.trim()) {
           return;
