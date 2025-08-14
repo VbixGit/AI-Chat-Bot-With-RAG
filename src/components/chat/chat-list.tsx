@@ -1,6 +1,6 @@
 'use client';
 
-import { type Message } from 'ai/react';
+import { type Message } from '@/lib/types';
 import { ChatMessage } from './chat-message';
 
 interface ChatListProps {

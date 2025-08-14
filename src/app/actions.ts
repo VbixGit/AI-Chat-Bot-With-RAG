@@ -49,9 +49,9 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   if (json.errors) {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
-  
+
   const results = json.data.Get.UserName || [];
-  
+
   return results.map((doc: any) => ({
     title: doc.title,
     text: doc.content || doc.pdfText,
@@ -111,9 +111,9 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
     });
 
     const docs = await searchWeaviate(embedding);
-    
+
     const filteredDocs = docs.filter(
-        (doc) => doc._additional.distance < scoreThreshold
+      (doc) => doc._additional.distance < scoreThreshold
     );
 
     if (filteredDocs.length === 0) {
@@ -134,11 +134,9 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
       title: d.title,
       source: d.source,
     }));
-    
-    const response = { answer, citations };
-    return response;
+
+    return { answer, citations };
   } catch (err) {
-    console.error('Error in askQuestion:', err);
     const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
     return { error: `Internal server error: ${errorMessage}` };
   }

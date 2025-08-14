@@ -1,69 +1,73 @@
 'use client';
 
-import { useChat, type Message } from 'ai/react';
+import { useState } from 'react';
 import { useEnterSubmit } from '@/hooks/use-enter-submit';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatScrollAnchor } from '@/components/chat/chat-scroll-anchor';
 import { PromptForm } from '@/components/chat/chat-prompt-form';
 import { askQuestion } from '@/app/actions';
 import { toast } from '@/hooks/use-toast';
-import type { Citation } from '@/lib/types';
+import type { Citation, Message } from '@/lib/types';
+import { ChatHeader } from './chat-header';
+import { ChatEmptyState } from './chat-empty-state';
 
 export function ChatPanel() {
-  const { messages, append, reload, stop, isLoading, input, setInput } =
-    useChat({
-      api: '/api/chat', // Dummy endpoint, not used
-      async onFinish(message: Message) {
-        console.log('Chat finished, final message:', message);
-      },
-      async onResponse(response) {
-        console.log('Chat response received:', response);
-      },
-      onError(error) {
-        console.error('Chat error:', error);
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
-      },
-    });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { formRef, onKeyDown } = useEnterSubmit();
 
   const handleAskQuestion = async (question: string) => {
-    console.log('Asking question:', question);
+    setIsLoading(true);
     const userMessage: Message = {
-      id: 'user-message',
+      id: `user-${Date.now()}`,
       role: 'user',
       content: question,
     };
-    append(userMessage);
+    setMessages(prevMessages => [...prevMessages, userMessage]);
 
     const res = await askQuestion(question);
+    setIsLoading(false);
 
     if ('error' in res) {
+      toast({
+        title: 'Error',
+        description: res.error,
+        variant: 'destructive',
+      });
       const errorMessage: Message = {
-        id: 'error-message',
+        id: `error-${Date.now()}`,
         role: 'assistant',
         content: res.error,
       };
-      append(errorMessage);
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
       return;
     }
 
     const aiMessage: Message = {
-      id: 'ai-message',
+      id: `ai-${Date.now()}`,
       role: 'assistant',
       content: res.answer,
     };
-    append(aiMessage);
+    setMessages(prevMessages => [...prevMessages, aiMessage]);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
   };
 
   return (
     <div className="flex flex-col h-full">
+      <ChatHeader clearChat={clearChat} isLoading={isLoading} />
       <div className="flex-1 overflow-y-auto">
-        <ChatList messages={messages} />
-        <ChatScrollAnchor trackVisibility={isLoading} />
+        {messages.length > 0 ? (
+          <>
+            <ChatList messages={messages} />
+            <ChatScrollAnchor trackVisibility={isLoading} />
+          </>
+        ) : (
+          <ChatEmptyState onSuggestionClick={setInput} />
+        )}
       </div>
       <div className="w-full px-4 py-2">
         <PromptForm

@@ -14,7 +14,6 @@ export function useEnterSubmit(): {
       !event.shiftKey &&
       !event.nativeEvent.isComposing
     ) {
-      console.log('Enter key pressed, submitting form');
       formRef.current?.requestSubmit();
       event.preventDefault();
     }

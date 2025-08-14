@@ -1,15 +1,13 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { type Message } from 'ai/react';
-import type { Citation } from '@/lib/types';
+import type { Message } from '@/lib/types';
 
 interface ChatMessageProps {
   message: Message;
 }
 
 export function ChatMessage({ message, ...props }: ChatMessageProps) {
-  console.log('Rendering chat message:', message);
   return (
     <div className="flex items-start p-4" {...props}>
       <Avatar className="w-8 h-8">

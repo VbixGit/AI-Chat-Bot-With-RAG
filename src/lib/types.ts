@@ -1,30 +1,29 @@
-import type { ReactNode } from 'react';
-
-export type Message = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string | ReactNode;
-  citations?: Citation[];
-};
-
-export type Citation = {
+export interface Citation {
   index: number;
   title: string;
   source: string;
-};
+}
 
-export type WeaviateDocument = {
+export interface WeaviateDocument {
   title: string;
   text: string;
   source: string;
   _additional: {
     distance: number;
   };
-};
+}
 
-export type ServerActionResponse = {
-    answer: string;
-    citations: Citation[];
-} | {
-    error: string;
-};
+export type ServerActionResponse =
+  | {
+      answer: string;
+      citations: Citation[];
+    }
+  | {
+      error: string;
+    };
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
