@@ -56,11 +56,10 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
 
   return results.map((doc: any) => ({
     title: doc.title,
+    text: doc.content || doc.pdfText,
+    source: doc.instanceID,
     email: doc.email,
     status: doc.status,
-    content: doc.content,
-    text: doc.pdfText,
-    source: doc.instanceID,
     _additional: doc._additional,
   }));
 }
@@ -141,7 +140,15 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
     }
 
     const context = filteredDocs
-      .map((d, i) => `#${i + 1} [${d.title}] (${d.source})\n${d.text}`)
+      .map((d, i) => `
+        Document #${i + 1}:
+        - Title: ${d.title}
+        - Source: ${d.source}
+        - Email: ${d.email}
+        - Status: ${d.status}
+        - Content: ${d.text}
+        - PdfText: ${d.pdfText}
+      `)
       .join('\n\n');
 
     const answer = await generateAnswer(context, question);

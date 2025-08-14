@@ -8,6 +8,9 @@ export interface WeaviateDocument {
   title: string;
   text: string;
   source: string;
+  email?: string;
+  status?: string;
+  pdfText?: string;
   _additional: {
     distance: number;
   };
