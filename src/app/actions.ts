@@ -15,13 +15,16 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   const query = `
     {
       Get {
-        VectorSage(
+        UserName(
           nearVector: { vector: ${JSON.stringify(vector)} }
           limit: ${topK}
         ) {
           title
-          text
-          source
+          email
+          instanceID
+          status
+          content
+          pdfText
           _additional { distance }
         }
       }
@@ -47,7 +50,16 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
   
-  return json.data.Get.VectorSage || [];
+  // Correctly extract data from the UserName collection
+  const results = json.data.Get.UserName || [];
+  
+  // Map results to the expected WeaviateDocument structure
+  return results.map((doc: any) => ({
+    title: doc.title,
+    text: doc.content || doc.pdfText, // Use content or pdfText for the main text
+    source: doc.instanceID, // Use instanceID as the source
+    _additional: doc._additional,
+  }));
 }
 
 async function generateAnswer(context: string, question: string): Promise<string> {

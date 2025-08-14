@@ -13,7 +13,6 @@ import {z} from 'genkit';
 const QuestionEmbeddingInputSchema = z.object({
   question: z.string().describe('The question to generate an embedding for.'),
   openAiApiKey: z.string().describe('The OpenAI API key.'),
-  openAiEmbedModel: z.string().optional().describe('The OpenAI embedding model to use. Defaults to text-embedding-3-large.'),
 });
 export type QuestionEmbeddingInput = z.infer<typeof QuestionEmbeddingInputSchema>;
 
@@ -36,7 +35,6 @@ const questionEmbeddingFlow = ai.defineFlow(
     const {
       question,
       openAiApiKey,
-      openAiEmbedModel = 'text-embedding-3-large',
     } = input;
 
     const res = await fetch('https://api.openai.com/v1/embeddings', {
@@ -47,7 +45,7 @@ const questionEmbeddingFlow = ai.defineFlow(
       },
       body: JSON.stringify({
         input: question,
-        model: openAiEmbedModel,
+        model: 'text-embedding-3-small',
       }),
     });
     const json = await res.json();
