@@ -1,5 +1,3 @@
-'use client';
-
 import { useRef, type RefObject } from 'react';
 
 export function useEnterSubmit(): {
@@ -8,12 +6,15 @@ export function useEnterSubmit(): {
 } {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+  const onKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ): void => {
     if (
       event.key === 'Enter' &&
       !event.shiftKey &&
       !event.nativeEvent.isComposing
     ) {
+      console.log('Enter key pressed, submitting form');
       formRef.current?.requestSubmit();
       event.preventDefault();
     }
