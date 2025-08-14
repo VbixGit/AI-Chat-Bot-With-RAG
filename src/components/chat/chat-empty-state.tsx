@@ -8,19 +8,18 @@ interface ChatEmptyStateProps {
 
 export function ChatEmptyState({ onSuggestionClick }: ChatEmptyStateProps) {
   const suggestions = [
-    'What are the key features of VectorSage?',
-    'How does the answer generation work?',
-    'What is the technical stack of this application?',
+    'What is the meaning of life?',
+    'What is the best programming language?',
     'Who is the CEO of OpenAI?',
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-      <h2 className="text-2xl font-semibold">VectorSage</h2>
-      <p className="text-muted-foreground">
+    <div className="flex flex-col items-center justify-center h-full">
+      <div className="text-2xl font-semibold">VectorSage</div>
+      <div className="text-gray-500">
         Your retrieval-augmented generation assistant
-      </p>
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      </div>
+      <div className="flex space-x-2 mt-4">
         {suggestions.map((suggestion, index) => (
           <Button
             key={index}

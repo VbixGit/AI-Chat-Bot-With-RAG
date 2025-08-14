@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ThemeToggle } from '../theme-toggle';
 
 interface ChatHeaderProps {
   clearChat: () => void;
@@ -18,21 +19,24 @@ export function ChatHeader({ clearChat, isLoading }: ChatHeaderProps) {
   return (
     <header className="flex items-center justify-between p-4 border-b">
       <h1 className="text-xl font-semibold">VectorSage</h1>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              onClick={clearChat}
-              disabled={isLoading}
-            >
-              <IconTrash />
-              <span className="sr-only">Clear Chat</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Clear Chat</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <div className="flex items-center space-x-2">
+        <ThemeToggle />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={clearChat}
+                disabled={isLoading}
+              >
+                <IconTrash />
+                <span className="sr-only">Clear Chat</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Clear Chat</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </header>
   );
 }

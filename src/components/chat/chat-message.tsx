@@ -2,58 +2,44 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Message } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { IconCheck, IconCopy } from '@/components/ui/icons';
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
   message: Message;
 }
 
 export function ChatMessage({ message, ...props }: ChatMessageProps) {
-  const { isCopied, copyToClipboard } = useCopyToClipboard({
-    text: message.content,
-  });
-
+  const isUser = message.role === 'user';
   return (
-    <div className="flex items-start p-4" {...props}>
-      <Avatar className="w-8 h-8">
-        <AvatarImage
-          src={message.role === 'user' ? '/user.png' : '/assistant.png'}
-        />
-        <AvatarFallback>
-          {message.role === 'user' ? 'U' : 'A'}
-        </AvatarFallback>
-      </Avatar>
-      <div className="ml-4 flex-1">
-        <div className="flex items-center justify-between">
-          <p className="font-semibold">
-            {message.role === 'user' ? 'You' : 'Assistant'}
-          </p>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copyToClipboard()}
-                >
-                  {isCopied ? <IconCheck /> : <IconCopy />}
-                  <span className="sr-only">Copy message</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Copy message</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+    <div
+      className={cn('flex items-start', {
+        'justify-end': isUser,
+      })}
+      {...props}
+    >
+      {!isUser && (
+        <Avatar className="w-8 h-8">
+          <AvatarImage src="/assistant.png" />
+          <AvatarFallback>A</AvatarFallback>
+        </Avatar>
+      )}
+      <div
+        className={cn(
+          'ml-4 flex-1 p-3 rounded-lg',
+          {
+            'bg-primary text-primary-foreground': isUser,
+            'bg-muted': !isUser,
+          }
+        )}
+      >
         <p>{message.content}</p>
       </div>
+      {isUser && (
+        <Avatar className="w-8 h-8 ml-4">
+          <AvatarImage src="/user.png" />
+          <AvatarFallback>U</AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 }

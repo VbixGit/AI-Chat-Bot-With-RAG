@@ -133,3 +133,38 @@ export function IconMoon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconPlus(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M8 3.5V12.5" />
+      <path d="M3.5 8H12.5" />
+    </svg>
+  );
+}
+
+export function IconSeparator(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M8 1.5V14.5" />
+    </svg>
+  );
+}
