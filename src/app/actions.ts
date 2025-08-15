@@ -16,14 +16,12 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   const query = `
     {
       Get {
-        UserName(
+        PolicyBaseMoreTK(
           nearVector: { vector: ${JSON.stringify(vector)} }
           limit: ${topK}
         ) {
           title
-          email
           instanceID
-          status
           content
           pdfText
           _additional { distance }
@@ -58,8 +56,6 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     title: doc.title,
     text: doc.content || doc.pdfText,
     source: doc.instanceID,
-    email: doc.email,
-    status: doc.status,
     _additional: doc._additional,
   }));
 }
