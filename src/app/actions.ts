@@ -49,12 +49,13 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
 
-  const results = json.data.Get.UserName || [];
+  const results = json.data.Get.PolicyBaseMoreTK || [];
   console.log(`Step 5: Found ${results.length} documents in Weaviate`);
 
   return results.map((doc: any) => ({
     title: doc.title,
-    text: doc.content || doc.pdfText,
+    text: doc.content,
+    pdfText: doc.pdfText,
     source: doc.instanceID,
     _additional: doc._additional,
   }));
@@ -104,20 +105,25 @@ async function generateAnswer(context: string, question: string): Promise<string
   return answer;
 }
 
-export async function askQuestion(question: string): Promise<ServerActionResponse> {
+export async function askQuestion(question: string, modelProvider: 'openai' | 'cohere'): Promise<ServerActionResponse> {
   console.log(`Step 1: Get text from user: "${question}"`);
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
+    const cohereApiKey = process.env.COHERE_API_KEY;
     const scoreThreshold = parseFloat(process.env.SCORE_THRESHOLD || '0.7');
 
-    if (!openAiApiKey) {
-      throw new Error('OpenAI API key is not set.');
+    if (modelProvider === 'openai' && !openAiApiKey) {
+        throw new Error('OpenAI API key is not set.');
+    } else if (modelProvider === 'cohere' && !cohereApiKey) {
+        throw new Error('Cohere API key is not set.');
     }
 
     console.log('Step 2: Embedding text...');
     const { embedding } = await generateQuestionEmbedding({
       question,
+      modelProvider,
       openAiApiKey,
+      cohereApiKey,
     });
     console.log(`Step 3: Embedding data: {*embedding data of length ${embedding.length}*}`);
 
@@ -136,15 +142,20 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
     }
 
     const context = filteredDocs
-      .map((d, i) => `
-        Document #${i + 1}:
-        - Title: ${d.title}
-        - Source: ${d.source}
-        - Email: ${d.email}
-        - Status: ${d.status}
-        - Content: ${d.text}
-        - PdfText: ${d.pdfText}
-      `)
+      .map((d, i) => {
+        const parts = [
+            `Document #${i + 1}:`,
+            `- Title: ${d.title}`,
+            `- Source: ${d.source}`
+        ];
+        if (d.text) {
+            parts.push(`- Content: ${d.text}`);
+        }
+        if (d.pdfText) {
+            parts.push(`- PdfText: ${d.pdfText}`);
+        }
+        return parts.join('\n');
+      })
       .join('\n\n');
 
     const answer = await generateAnswer(context, question);

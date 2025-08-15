@@ -4,6 +4,13 @@ import { useRef } from 'react';
 import Textarea from 'react-textarea-autosize';
 import { Button } from '@/components/ui/button';
 import { IconArrowElbow } from '@/components/ui/icons';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface PromptFormProps {
   formRef: React.RefObject<HTMLFormElement>;
@@ -12,6 +19,8 @@ interface PromptFormProps {
   input: string;
   setInput: (value: string) => void;
   isLoading: boolean;
+  modelProvider: 'openai' | 'cohere';
+  setModelProvider: (value: 'openai' | 'cohere') => void;
 }
 
 export function PromptForm({
@@ -21,6 +30,8 @@ export function PromptForm({
   input,
   setInput,
   isLoading,
+  modelProvider,
+  setModelProvider,
 }: PromptFormProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,7 +47,20 @@ export function PromptForm({
         await onSubmit(input);
       }}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-4 sm:rounded-full sm:border">
+      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-4 sm:rounded-full sm:border items-center flex-row">
+        <Select
+            value={modelProvider}
+            onValueChange={(value: 'openai' | 'cohere') => setModelProvider(value)}
+            disabled={isLoading}
+        >
+            <SelectTrigger className="w-[120px] border-none focus:ring-0">
+                <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="cohere">Cohere</SelectItem>
+            </SelectContent>
+        </Select>
         <Textarea
           ref={inputRef}
           tabIndex={0}
