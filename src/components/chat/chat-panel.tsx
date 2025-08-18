@@ -15,11 +15,10 @@ export function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [modelProvider, setModelProvider] = useState<'openai' | 'cohere'>('openai');
   const { formRef, onKeyDown } = useEnterSubmit();
 
   const handleAskQuestion = async (question: string) => {
-    console.log(`Step 1 (Client): User submitted question: "${question}" with model: ${modelProvider}`);
+    console.log(`Step 1 (Client): User submitted question: "${question}"`);
     setIsLoading(true);
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -28,7 +27,7 @@ export function ChatPanel() {
     };
     setMessages(prevMessages => [...prevMessages, userMessage]);
 
-    const res = await askQuestion(question, modelProvider);
+    const res = await askQuestion(question);
     setIsLoading(false);
     console.log('Step 10 (Client): Received response from server:', res);
 
@@ -84,8 +83,6 @@ export function ChatPanel() {
           input={input}
           setInput={setInput}
           isLoading={isLoading}
-          modelProvider={modelProvider}
-          setModelProvider={setModelProvider}
         />
       </div>
     </div>

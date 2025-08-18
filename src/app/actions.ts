@@ -7,7 +7,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   console.log('Step 4: Searching Weaviate with the embedding vector...');
   const weaviateEndpoint = process.env.WEAVIATE_ENDPOINT;
   const weaviateApiKey = process.env.WEAVIATE_API_KEY;
-  const topK = process.env.TOP_K || '5';
+  const topK = process.env.TOP_K || '5'; // Reduced from 5 to 3 to lower token count
 
   if (!weaviateEndpoint || !weaviateApiKey) {
     throw new Error('Weaviate environment variables are not set.');
@@ -16,14 +16,20 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
   const query = `
     {
       Get {
-        PolicyBaseMoreTK(
+        TestPolicyUpload(
           nearVector: { vector: ${JSON.stringify(vector)} }
           limit: ${topK}
         ) {
-          title
+          description
           instanceID
+          requesterName
+          requesterEmail
+          pdfFileId
           content
-          pdfText
+          chunkIndex
+          chunkCount
+          source
+          chunkId
           _additional { distance }
         }
       }
@@ -62,7 +68,7 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
 }
 
 async function generateAnswer(context: string, question: string): Promise<string> {
-  console.log('Step 7: Generating answer with context...');
+  console.log('Step 7: Generating answer with context using OpenAI...');
   const openAiApiKey = process.env.OPENAI_API_KEY;
   const openAiChatModel = process.env.OPENAI_CHAT_MODEL || 'gpt-4o';
 
@@ -70,12 +76,10 @@ async function generateAnswer(context: string, question: string): Promise<string
     throw new Error('OpenAI API key is not set.');
   }
 
-  const systemPrompt = `You are VectorSage, a friendly and intelligent AI assistant. Your goal is to provide helpful and comprehensive answers to the user's questions based on the information provided in the Context.
-
-- Synthesize the information from the Context to answer the user's question thoroughly.
-- If the Context doesn't contain a direct answer, try to infer one or explain what information is available.
-- If you cannot answer the question at all with the given context, politely state that you couldn't find the specific information.
-- Answer in a conversational and helpful tone.`;
+  const systemPrompt = `You are a helpful AI assistant. Your task is to answer the user's question based on the provided context. 
+  Synthesize the information from the documents to provide a comprehensive and natural-sounding answer. 
+  If the information is not in the context, say that you couldn't find the information. Do not make up information. 
+  Respond in a conversational and friendly tone, like a human would.`;
   const userPrompt = `Question: ${question}\n\nContext:\n${context}`;
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -105,43 +109,38 @@ async function generateAnswer(context: string, question: string): Promise<string
   return answer;
 }
 
-export async function askQuestion(question: string, modelProvider: 'openai' | 'cohere'): Promise<ServerActionResponse> {
+export async function askQuestion(question: string): Promise<ServerActionResponse> {
   console.log(`Step 1: Get text from user: "${question}"`);
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
     const cohereApiKey = process.env.COHERE_API_KEY;
-    const scoreThreshold = parseFloat(process.env.SCORE_THRESHOLD || '0.7');
 
-    if (modelProvider === 'openai' && !openAiApiKey) {
-        throw new Error('OpenAI API key is not set.');
-    } else if (modelProvider === 'cohere' && !cohereApiKey) {
-        throw new Error('Cohere API key is not set.');
+    if (!cohereApiKey) {
+      throw new Error('Cohere API key is not set for embedding.');
+    }
+    if (!openAiApiKey) {
+      throw new Error('OpenAI API key is not set for answer generation.');
     }
 
-    console.log('Step 2: Embedding text...');
+    console.log('Step 2: Embedding text using Cohere...');
     const { embedding } = await generateQuestionEmbedding({
       question,
-      modelProvider,
-      openAiApiKey,
+      modelProvider: 'cohere',
       cohereApiKey,
     });
     console.log(`Step 3: Embedding data: {*embedding data of length ${embedding.length}*}`);
 
     const docs = await searchWeaviate(embedding);
+    console.log(`Step 6: Using all ${docs.length} documents from Weaviate.`);
 
-    const filteredDocs = docs.filter(
-      (doc) => doc._additional.distance < scoreThreshold
-    );
-    console.log(`Step 6: Filtered down to ${filteredDocs.length} documents based on score threshold of ${scoreThreshold}`);
-
-    if (filteredDocs.length === 0) {
+    if (docs.length === 0) {
       return {
         answer: "I couldn't find any information matching your question. Please try rephrasing it.",
         citations: [],
       };
     }
 
-    const context = filteredDocs
+    const context = docs
       .map((d, i) => {
         const parts = [
             `Document #${i + 1}:`,
@@ -160,7 +159,7 @@ export async function askQuestion(question: string, modelProvider: 'openai' | 'c
 
     const answer = await generateAnswer(context, question);
 
-    const citations: Citation[] = filteredDocs.map((d, i) => ({
+    const citations: Citation[] = docs.map((d, i) => ({
       index: i + 1,
       title: d.title,
       source: d.source,
