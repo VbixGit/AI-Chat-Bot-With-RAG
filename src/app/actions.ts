@@ -1,13 +1,13 @@
 'use server';
 
 import { generateQuestionEmbedding } from '@/ai/flows/question-embedding';
-import type { WeaviateDocument, Citation, ServerActionResponse } from '@/lib/types';
+import type { Citation, ServerActionResponse } from '@/lib/types';
 
-async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
+async function searchWeaviate(vector: number[]): Promise<any[]> {
   console.log('Step 4: Searching Weaviate with the embedding vector...');
   const weaviateEndpoint = process.env.WEAVIATE_ENDPOINT;
   const weaviateApiKey = process.env.WEAVIATE_API_KEY;
-  const topK = process.env.TOP_K || '5'; // Reduced from 5 to 3 to lower token count
+  const topK = process.env.TOP_K || '5';
 
   if (!weaviateEndpoint || !weaviateApiKey) {
     throw new Error('Weaviate environment variables are not set.');
@@ -55,16 +55,10 @@ async function searchWeaviate(vector: number[]): Promise<WeaviateDocument[]> {
     throw new Error(`Weaviate GraphQL error: ${JSON.stringify(json.errors)}`);
   }
 
-  const results = json.data.Get.PolicyBaseMoreTK || [];
+  const results = json.data.Get.TestPolicyUpload || [];
   console.log(`Step 5: Found ${results.length} documents in Weaviate`);
 
-  return results.map((doc: any) => ({
-    title: doc.title,
-    text: doc.content,
-    pdfText: doc.pdfText,
-    source: doc.instanceID,
-    _additional: doc._additional,
-  }));
+  return results;
 }
 
 async function generateAnswer(context: string, question: string): Promise<string> {
@@ -113,20 +107,16 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
   console.log(`Step 1: Get text from user: "${question}"`);
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
-    const cohereApiKey = process.env.COHERE_API_KEY;
 
-    if (!cohereApiKey) {
-      throw new Error('Cohere API key is not set for embedding.');
-    }
     if (!openAiApiKey) {
-      throw new Error('OpenAI API key is not set for answer generation.');
+      throw new Error('OpenAI API key is not set for embedding and answer generation.');
     }
 
-    console.log('Step 2: Embedding text using Cohere...');
+    console.log('Step 2: Embedding text using OpenAI...');
     const { embedding } = await generateQuestionEmbedding({
       question,
-      modelProvider: 'cohere',
-      cohereApiKey,
+      modelProvider: 'openai',
+      openAiApiKey,
     });
     console.log(`Step 3: Embedding data: {*embedding data of length ${embedding.length}*}`);
 
@@ -142,26 +132,25 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
 
     const context = docs
       .map((d, i) => {
-        const parts = [
-            `Document #${i + 1}:`,
-            `- Title: ${d.title}`,
-            `- Source: ${d.source}`
-        ];
-        if (d.text) {
-            parts.push(`- Content: ${d.text}`);
-        }
-        if (d.pdfText) {
-            parts.push(`- PdfText: ${d.pdfText}`);
-        }
-        return parts.join('\n');
+        return `Document #${i + 1}:
+- Description: ${d.description}
+- Content: ${d.content}
+- Source: ${d.source}
+- Requester: ${d.requesterName} <${d.requesterEmail}>
+- PDF File ID: ${d.pdfFileId}
+- Instance ID: ${d.instanceID}
+- Chunk Index: ${d.chunkIndex}
+- Chunk Count: ${d.chunkCount}
+- Chunk ID: ${d.chunkId}
+- Relevance Score (distance): ${d._additional.distance}`;
       })
-      .join('\n\n');
+      .join('\n\n---\n\n');
 
     const answer = await generateAnswer(context, question);
 
     const citations: Citation[] = docs.map((d, i) => ({
       index: i + 1,
-      title: d.title,
+      title: d.description || `Document ${i + 1}`,
       source: d.source,
     }));
     
