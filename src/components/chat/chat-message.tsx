@@ -5,6 +5,7 @@ import type { Message } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Loading } from '@/components/ui/loading';
 
 interface ChatMessageProps {
   message: Message;
@@ -12,6 +13,8 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, ...props }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const isPlaceholder = message.content === '...';
+
   return (
     <div
       className={cn('flex items-start', {
@@ -34,9 +37,13 @@ export function ChatMessage({ message, ...props }: ChatMessageProps) {
           }
         )}
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {message.content}
-        </ReactMarkdown>
+        {isPlaceholder ? (
+          <Loading />
+        ) : (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {message.content}
+          </ReactMarkdown>
+        )}
       </div>
       {isUser && (
         <Avatar className="w-8 h-8 ml-4">

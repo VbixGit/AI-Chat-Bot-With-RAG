@@ -25,36 +25,58 @@ export function ChatPanel() {
       role: 'user',
       content: question,
     };
-    const newMessages = [...messages, userMessage];
+
+    // Add a placeholder for the assistant's response to show loading
+    const assistantPlaceholder: Message = {
+      id: `ai-placeholder-${Date.now()}`,
+      role: 'assistant',
+      content: '...',
+    };
+
+    const newMessages = [...messages, userMessage, assistantPlaceholder];
     setMessages(newMessages);
 
-    // Pass the entire chat history to the server action
-    const res = await askQuestion(question, newMessages);
-    setIsLoading(false);
-    console.log('Step 10 (Client): Received response from server:', res);
-
+    const chatHistory = [...messages, userMessage];
+    const res = await askQuestion(question, chatHistory);
+    
     if ('error' in res) {
       toast({
         title: 'Error',
         description: res.error,
         variant: 'destructive',
       });
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: res.error,
-      };
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
-      return;
+      // Replace placeholder with the error message
+      setMessages(prevMessages => {
+        const updatedMessages = [...prevMessages];
+        const placeholderIndex = updatedMessages.findIndex(msg => msg.id.startsWith('ai-placeholder-'));
+        if (placeholderIndex !== -1) {
+          updatedMessages[placeholderIndex] = {
+            id: `error-${Date.now()}`,
+            role: 'assistant',
+            content: res.error,
+          };
+        }
+        return updatedMessages;
+      });
+    } else {
+      console.log('Step 10 (Client): Received response from server:', res);
+      // Replace placeholder with the actual answer
+      setMessages(prevMessages => {
+        const updatedMessages = [...prevMessages];
+        const placeholderIndex = updatedMessages.findIndex(msg => msg.id.startsWith('ai-placeholder-'));
+        if (placeholderIndex !== -1) {
+          updatedMessages[placeholderIndex] = {
+            id: `ai-${Date.now()}`,
+            role: 'assistant',
+            content: res.answer,
+          };
+        }
+        return updatedMessages;
+      });
+      console.log('Step 11 (Client): Displaying AI response');
     }
 
-    const aiMessage: Message = {
-      id: `ai-${Date.now()}`,
-      role: 'assistant',
-      content: res.answer,
-    };
-    setMessages(prevMessages => [...prevMessages, aiMessage]);
-    console.log('Step 11 (Client): Displaying AI response');
+    setIsLoading(false);
   };
 
   const clearChat = () => {
