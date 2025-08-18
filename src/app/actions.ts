@@ -1,7 +1,7 @@
 'use server';
 
 import { generateQuestionEmbedding } from '@/ai/flows/question-embedding';
-import type { Citation, ServerActionResponse } from '@/lib/types';
+import type { Citation, ServerActionResponse, Message } from '@/lib/types';
 
 async function searchWeaviate(vector: number[]): Promise<any[]> {
   console.log('Step 4: Searching Weaviate with the embedding vector...');
@@ -61,7 +61,11 @@ async function searchWeaviate(vector: number[]): Promise<any[]> {
   return results;
 }
 
-async function generateAnswer(context: string, question: string): Promise<string> {
+async function generateAnswer(
+  context: string,
+  question: string,
+  chatHistory: Message[]
+): Promise<string> {
   console.log('Step 7: Generating answer with context using OpenAI...');
   const openAiApiKey = process.env.OPENAI_API_KEY;
   const openAiChatModel = process.env.OPENAI_CHAT_MODEL || 'gpt-4o';
@@ -70,11 +74,19 @@ async function generateAnswer(context: string, question: string): Promise<string
     throw new Error('OpenAI API key is not set.');
   }
 
-  const systemPrompt = `You are a helpful AI assistant. Your task is to answer the user's question based on the provided context. 
+  const systemPrompt = `You are a helpful AI assistant. Your task is to answer the user's question based on the provided context and chat history. 
   Synthesize the information from the documents to provide a comprehensive and natural-sounding answer. 
   If the information is not in the context, say that you couldn't find the information. Do not make up information. 
-  Respond in a conversational and friendly tone, like a human would.`;
+  Maintain a conversational and friendly tone, like a human would.
+  If the user's question is a follow-up to a previous question, use the chat history to understand the context of the conversation.`;
+  
   const userPrompt = `Question: ${question}\n\nContext:\n${context}`;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...chatHistory,
+    { role: 'user', content: userPrompt },
+  ];
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -85,10 +97,7 @@ async function generateAnswer(context: string, question: string): Promise<string
     body: JSON.stringify({
       model: openAiChatModel,
       temperature: 0.2,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
+      messages: messages,
     }),
   });
 
@@ -103,7 +112,10 @@ async function generateAnswer(context: string, question: string): Promise<string
   return answer;
 }
 
-export async function askQuestion(question: string): Promise<ServerActionResponse> {
+export async function askQuestion(
+  question: string,
+  chatHistory: Message[] = []
+): Promise<ServerActionResponse> {
   console.log(`Step 1: Get text from user: "${question}"`);
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
@@ -146,7 +158,7 @@ export async function askQuestion(question: string): Promise<ServerActionRespons
       })
       .join('\n\n---\n\n');
 
-    const answer = await generateAnswer(context, question);
+    const answer = await generateAnswer(context, question, chatHistory);
 
     const citations: Citation[] = docs.map((d, i) => ({
       index: i + 1,

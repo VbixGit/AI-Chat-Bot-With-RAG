@@ -25,9 +25,11 @@ export function ChatPanel() {
       role: 'user',
       content: question,
     };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
-    const res = await askQuestion(question);
+    // Pass the entire chat history to the server action
+    const res = await askQuestion(question, newMessages);
     setIsLoading(false);
     console.log('Step 10 (Client): Received response from server:', res);
 
