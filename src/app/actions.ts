@@ -12,8 +12,8 @@ async function classifyQuestion(question: string): Promise<string> {
     throw new Error('OpenAI API key is not set.');
   }
 
-  const systemPrompt = `You are a helpful AI assistant. Your task is to classify the user's question into one of two categories: "Policy" or "Resume". 
-  Respond with only "Policy" or "Resume".`;
+  const systemPrompt = `You are a helpful AI assistant. Your task is to classify the user's question into one of three categories: "Policy", "Resume", or "Other".
+  Respond with only "Policy", "Resume", or "Other".`;
   
   const userPrompt = `Question: ${question}`;
 
@@ -44,7 +44,7 @@ async function classifyQuestion(question: string): Promise<string> {
   let classification = json.choices[0].message.content.trim();
 
   // Basic validation to ensure the classification is one of the expected values.
-  if (classification !== 'Policy' && classification !== 'Resume') {
+  if (classification !== 'Policy' && classification !== 'Resume' && classification !== 'Other') {
     console.warn(`Unexpected classification result: "${classification}". Defaulting to "Policy".`);
     classification = 'Policy'; 
   }
@@ -178,6 +178,13 @@ export async function askQuestion(
     }
 
     const classification = await classifyQuestion(question);
+
+    if (classification === 'Other') {
+      return {
+        answer: "ขออภัยค่ะ ดิฉันสามารถตอบคำถามได้เฉพาะเรื่องที่เกี่ยวกับ Policy หรือ Resume เท่านั้น หากมีข้อสงสัยเพิ่มเติมในเรื่องดังกล่าว สามารถสอบถามได้เลยค่ะ",
+        citations: [],
+      };
+    }
 
     console.log('Step 2: Embedding text using OpenAI...');
     const { embedding } = await generateQuestionEmbedding({
