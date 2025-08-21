@@ -18,7 +18,7 @@ interface ChatHeaderProps {
 export function ChatHeader({ clearChat, isLoading }: ChatHeaderProps) {
   return (
     <header className="flex items-center justify-between p-4 border-b">
-      <h1 className="text-xl font-semibold">VectorSage</h1>
+      <h1 className="text-xl font-semibold">Chat With AI</h1>
       <div className="flex items-center space-x-2">
         <ThemeToggle />
         <TooltipProvider>

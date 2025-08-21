@@ -8,14 +8,14 @@ interface ChatEmptyStateProps {
 
 export function ChatEmptyState({ onSuggestionClick }: ChatEmptyStateProps) {
   const suggestions = [
-    'What is the meaning of life?',
-    'What is the best programming language?',
-    'Who is the CEO of OpenAI?',
+    'เกี่ยวกับค่ารักษาพยาบาล',
+    'ค้นหาบุคคลที่มีความสามารถด้านบัญชี',
+    'ขั้นตอนการเบิกค่ารักษา',
   ];
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <div className="text-2xl font-semibold">VectorSage</div>
+      <div className="text-2xl font-semibold">Chat With AI</div>
       <div className="text-gray-500">
         Your retrieval-augmented generation assistant
       </div>

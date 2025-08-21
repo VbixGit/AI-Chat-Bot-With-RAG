@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VectorSage",
+  title: "Chat With AI - RAG (Web base)",
   description: "A retrieval-augmented generation assistant",
 };
 

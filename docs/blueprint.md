@@ -1,4 +1,4 @@
-# **App Name**: VectorSage
+# **App Name**: Chat With AI
 
 ## Core Features:
 
