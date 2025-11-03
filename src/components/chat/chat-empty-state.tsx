@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 interface ChatEmptyStateProps {
   onSuggestionClick: (suggestion: string) => void;
@@ -8,9 +8,9 @@ interface ChatEmptyStateProps {
 
 export function ChatEmptyState({ onSuggestionClick }: ChatEmptyStateProps) {
   const suggestions = [
-    'เกี่ยวกับค่ารักษาพยาบาล',
-    'ค้นหาบุคคลที่มีความสามารถด้านบัญชี',
-    'ขั้นตอนการเบิกค่ารักษา',
+    "เกี่ยวกับค่ารักษาพยาบาล",
+    "นโยบายลางาน",
+    "ขั้นตอนการเบิกค่ารักษา",
   ];
 
   return (
